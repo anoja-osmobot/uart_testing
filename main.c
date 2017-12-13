@@ -43,11 +43,13 @@ int main() {
 	//printf("\nSent\n");
       //sleep(5);
      sleep(2);
+while(1){
 	memset(receive, 0x00, 200*sizeof(receive[0]));
       if (uart_read(uart, receive, 140) < 0) {
           printf("Could not read data from uart port");
           return -1;
       }
+}
       //printf("Read*****\n%s\n*******",receive);
     // gpio_set_value(gpio, 1);
     uart_close(uart);

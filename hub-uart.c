@@ -37,6 +37,7 @@ int uart_open(uart_properties *uart) {
 
         uart_port.c_cflag = uart->baudrate | CS8 | CLOCAL | CREAD;
         uart_port.c_iflag = IGNPAR | ICRNL;
+	uart_port.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON); //tty is the name of the struct termios
         uart_port.c_oflag = 0;
         uart_port.c_lflag = 0;
 
@@ -103,16 +104,16 @@ void processRxRSMessage( unsigned char *receive)
 
 int uart_read(uart_properties *uart,unsigned char *rx, int length) {
         int count;
-	usleep(5000);
+	usleep(500);
         if( (count = read(uart->fd,(void*)rx,length)) < 0) {
            	printf("Count is %d\n",count);
             return -1;
         }
-        printf("Reading_rx %d: %x\n",count,rx);
+        printf("Count %d\n",count);
         for(int i=0;i<length;i++){
                 printf("%x ",rx[i]);
         }
-	    if(rx[0]==0x3a) processRxRSMessage(rx);
+	//if(rx[0]==0x3a) processRxRSMessage(rx);
         return count;
 }
 
