@@ -104,16 +104,16 @@ void processRxRSMessage( unsigned char *receive)
 
 int uart_read(uart_properties *uart,unsigned char *rx, int length) {
         int count;
-	usleep(500);
+//	usleep(500);
         if( (count = read(uart->fd,(void*)rx,length)) < 0) {
            	printf("Count is %d\n",count);
             return -1;
         }
         printf("Count %d\n",count);
-        for(int i=0;i<length;i++){
+        for(int i=0;i<count;i++){
                 printf("%x ",rx[i]);
         }
-	//if(rx[0]==0x3a) processRxRSMessage(rx);
+	if(rx[0]==0x3a) processRxRSMessage(rx);
         return count;
 }
 
