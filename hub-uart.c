@@ -37,7 +37,6 @@ int uart_open(uart_properties *uart) {
 
         uart_port.c_cflag = uart->baudrate | CS8 | CLOCAL | CREAD;
         uart_port.c_iflag = IGNPAR | ICRNL;
-	uart_port.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON); //tty is the name of the struct termios
         uart_port.c_oflag = 0;
         uart_port.c_lflag = 0;
 
@@ -58,19 +57,42 @@ int uart_send(uart_properties *uart, char *tx, int length) {
         syslog(LOG_INFO, "Wrote %s to uart %i", tx, uart->uart_id);
         return 0;
 }
-/*
-#define _FIRMVERS 0 // 2 bytes
-#define _HARDVERS 2 // 2 bytes
-#define _NODEID 4 // 3 bytes
-#define _NODEADD 7 // 1 byte
-#define _SLIDEID 8 // 4 bytes
-#define _ADCAVG 12 // 1 byte
-#define _LSAVG 13 // 1 byte
-#define _AMBCORRECT 14 // 1 byte
-#define _LSINTSTEPS 15 // 8 bytes
-#define _LSGAINS 23 // 8 bytes
-*/
+void printDeviceReading(unsigned char *buf){
+    printf("\n");
+    printf("_FIRMVERS:%d.%d\n",rec_buffer[_FIRMVERS+1],rec_buffer[_FIRMVERS]);
+    printf("_HARDVERS:%d.%d\n",rec_buffer[_HARDVERS+1],rec_buffer[_HARDVERS]);
+    printf("_NODEID:%d|%d|%d\n",rec_buffer[_NODEID+2],rec_buffer[_NODEID+1],rec_buffer[_NODEID]);
+    printf("_NODEADD:%d\n",rec_buffer[_NODEADD]);
+    printf("_SLIDEID:%d+4\n",rec_buffer[_SLIDEID]);
+    printf("_ADCAVG:%d\n",rec_buffer[_ADCAVG]);
+    printf("_LSAVG:%d\n",rec_buffer[_LSAVG]);
+    printf("_AMBCORRECT:%d\n",rec_buffer[_AMBCORRECT]);
+    printf("_LSINTSTEPS:%d\n",rec_buffer[_LSINTSTEPS]);
+    printf("_LSGAINS:%d\n",rec_buffer[_LSGAINS]);
 
+    printf("_UPTIME:%d\n",rec_buffer[PERSISTLEN + 0]);
+    printf("_ADC0:%d %d\n",rec_buffer[PERSISTLEN + 5],rec_buffer[PERSISTLEN + 4]);
+    printf("_ADC1:%d %d\n",rec_buffer[PERSISTLEN + 7],rec_buffer[PERSISTLEN + 6]);
+    printf("_ADC2:%d %d\n",rec_buffer[PERSISTLEN + 9],rec_buffer[PERSISTLEN + 8]);
+    printf("_ADC3:%d %d\n",rec_buffer[PERSISTLEN + 11],rec_buffer[PERSISTLEN + 10]);
+    printf("_ADC4:%d\n",rec_buffer[PERSISTLEN + 12]);
+    printf("_ADC5:%d\n",rec_buffer[PERSISTLEN + 14]);
+    printf("_ADC6:%d\n",rec_buffer[PERSISTLEN + 16]);
+    printf("_ADC7:%d\n",rec_buffer[PERSISTLEN + 18]);
+    printf("_LS0:%d %d\n",rec_buffer[PERSISTLEN + 27],rec_buffer[PERSISTLEN + 26],rec_buffer[PERSISTLEN + 25],rec_buffer[PERSISTLEN + 24],rec_buffer[PERSISTLEN + 23],rec_buffer[PERSISTLEN + 22],rec_buffer[PERSISTLEN + 21],rec_buffer[PERSISTLEN + 20]);
+    printf("_LS2:%d %d\n",rec_buffer[PERSISTLEN + 35],rec_buffer[PERSISTLEN + 34],rec_buffer[PERSISTLEN + 33],rec_buffer[PERSISTLEN + 32],rec_buffer[PERSISTLEN + 31],rec_buffer[PERSISTLEN + 30],rec_buffer[PERSISTLEN + 29],rec_buffer[PERSISTLEN + 28]);
+    printf("_LS3:%d\n",rec_buffer[PERSISTLEN + 43],rec_buffer[PERSISTLEN + 42],rec_buffer[PERSISTLEN + 41],rec_buffer[PERSISTLEN + 40],rec_buffer[PERSISTLEN + 39],rec_buffer[PERSISTLEN + 38],rec_buffer[PERSISTLEN + 37],rec_buffer[PERSISTLEN + 36]);
+    printf("_LS4:%d\n",rec_buffer[PERSISTLEN + 42]);
+    printf("_LS5:%d\n",rec_buffer[PERSISTLEN + 50]);
+    printf("_LS6:%d\n",rec_buffer[PERSISTLEN + 58]);
+    printf("_LS7:%d\n",rec_buffer[PERSISTLEN + 64]);
+    printf("_LS8:%d\n",rec_buffer[PERSISTLEN + 72]);
+
+
+    printf("_CRC: %d\n",rec_buffer[MSG_PREPAD+STATELEN]);//4+128
+    printf("_CR: %d\n",rec_buffer[MSG_PREPAD+STATELEN+1]);//4+128+1
+    printf("_LF:%d\n",rec_buffer[MSG_PREPAD+STATELEN+2]);//4+128+2
+}
 
 void processRxRSMessage( unsigned char *receive)
 {
@@ -78,21 +100,8 @@ void processRxRSMessage( unsigned char *receive)
     memcpy( &rec_buffer, &receive[MSG_PREPAD], RSMsgLen);
     switch( receive[3] ){
         case CMD_SENDSTATE:
-                    // sendToServer(rec_buffer, sizeof(rec_buffer)); // Forward whole state array to the server
-            printf("All values displayed in decimals\n");
-            printf("_FIRMVERS:%d|%d\n",rec_buffer[_FIRMVERS],rec_buffer[_FIRMVERS+1]);
-            printf("_HARDVERS:%d|%d\n",rec_buffer[_HARDVERS],rec_buffer[_HARDVERS+1]);
-            printf("_NODEID:%d|%d|%d\n",rec_buffer[_NODEID],rec_buffer[_NODEID+1],rec_buffer[_NODEID+2]);
-            printf("_NODEADD:%d\n",rec_buffer[_NODEADD]);
-            printf("_SLIDEID:%d+4\n",rec_buffer[_SLIDEID]);
-            printf("_ADCAVG:%d\n",rec_buffer[_ADCAVG]);
-            printf("_LSAVG:%d\n",rec_buffer[_LSAVG]);
-            printf("_AMBCORRECT:%d\n",rec_buffer[_AMBCORRECT]);
-            printf("_LSINTSTEPS:%d\n",rec_buffer[_LSINTSTEPS]);
-            printf("_LSGAINS:%d\n",rec_buffer[_LSGAINS]);
-            printf("_CRC: %d\n",rec_buffer[STATELEN]);//4+128
-            printf("_CR: %d\n",rec_buffer[STATELEN+1]);//4+128+1
-            printf("_LF:%d\n",rec_buffer[STATELEN+2]);//4+128+2
+              // sendToServer(rec_buffer, sizeof(rec_buffer)); // Forward whole state array to the server
+            printDeviceReading(rec_buffer);
             break;
 
         default:
@@ -104,16 +113,16 @@ void processRxRSMessage( unsigned char *receive)
 
 int uart_read(uart_properties *uart,unsigned char *rx, int length) {
         int count;
-//	usleep(500);
         if( (count = read(uart->fd,(void*)rx,length)) < 0) {
            	printf("Count is %d\n",count);
             return -1;
         }
-        printf("Count %d\n",count);
-        for(int i=0;i<count;i++){
+        printf("Reading_rx %d: %x\n",count,rx);
+        /*for(int i=0;i<length;i++){
                 printf("%x ",rx[i]);
-        }
-	if(rx[0]==0x3a) processRxRSMessage(rx);
+        }*/
+        while(*rx==0x3a) rx++;
+        processRxRSMessage(rx);
         return count;
 }
 
@@ -121,5 +130,4 @@ int uart_close(uart_properties *uart) {
         close(uart->fd);
         return 0;
 }
-
 
